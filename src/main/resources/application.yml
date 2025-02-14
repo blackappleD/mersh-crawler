@@ -1,0 +1,10 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: mersh-crawler
+proxy:
+  enable: true
+  auth-key: 6179CB51
+  auth_password: C39AF99FF29E
+

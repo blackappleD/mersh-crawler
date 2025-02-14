@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.6'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.pkz.bla'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+//    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+//    runtimeOnly 'com.mysql:mysql-connector-j'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // https://mvnrepository.com/artifact/cn.hutool/hutool-all
+    implementation 'cn.hutool:hutool-all:5.8.33'
+    // https://mvnrepository.com/artifact/us.codecraft/webmagic-core
+    implementation 'us.codecraft:webmagic-core:1.0.2'
+    // https://mvnrepository.com/artifact/us.codecraft/webmagic-extension
+    implementation 'us.codecraft:webmagic-extension:1.0.2'
+    // 添加Apache Commons Lang3依赖
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    // 添加 JsonPath 依赖
+    implementation 'com.jayway.jsonpath:json-path:2.9.0'
+    implementation 'org.brotli:dec:0.1.2'
+    // https://mvnrepository.com/artifact/org.jsoup/jsoup
+    implementation 'org.jsoup:jsoup:1.15.3'
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
