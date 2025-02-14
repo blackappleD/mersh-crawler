@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "proxy")
 public class ProxyConfig {
-	private boolean enabled = true;
+	private boolean enable = true;
 
 	private String authKey;
 
