@@ -1,6 +1,7 @@
 package com.pkz.bla.mershcrawler.robot;
 
 import cn.hutool.core.util.RandomUtil;
+import com.pkz.bla.mershcrawler.exception.MershCrawlerException;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
@@ -13,8 +14,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,10 +78,10 @@ public class RobotChecker {
 					"Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
 			);
 
-			log.info("ChromeDriver初始化成功");
+			log.info("=== ChromeDriver初始化成功");
 
 		} catch (Exception e) {
-			log.error("初始化WebDriver失败: {}", e.getMessage(), e);
+			log.error("=== 初始化WebDriver失败: {}", e.getMessage(), e);
 			throw new RuntimeException("初始化WebDriver失败", e);
 		}
 	}
@@ -137,7 +136,7 @@ public class RobotChecker {
 			return driverFile.getAbsolutePath();
 
 		} catch (Exception e) {
-			log.error("提取ChromeDriver失败: {}", e.getMessage());
+			log.error("=== 提取ChromeDriver失败: {}", e.getMessage());
 			throw new RuntimeException("提取ChromeDriver失败", e);
 		}
 	}
@@ -145,53 +144,31 @@ public class RobotChecker {
 	private String getChromePath() {
 		try {
 			String os = System.getProperty("os.name").toLowerCase();
-			String resourcePath;
+			File chromeFile;
 
 			if (os.contains("windows")) {
-				resourcePath = "/chrome/windows/explore/chrome.exe";
+				String resourcePath = "/chrome/windows/explore/chrome.exe";
+				URL resource = getClass().getResource(resourcePath);
+				if (resource == null) {
+					throw new MershCrawlerException("=== 未找到Chrome.exe文件");
+				}
+				chromeFile = new File(resource.toURI());
 			} else if (os.contains("linux")) {
-				resourcePath = "/usr/bin/google-chrome";
+				String resourcePath = "/usr/bin/google-chrome";
+				chromeFile = new File(resourcePath);
 			} else {
 				throw new RuntimeException("不支持的操作系统: " + os);
 			}
+			String absolutePath = chromeFile.getAbsolutePath();
 
-			log.info("=== 当前操作系统: {}, 使用Chrome路径: {}", os, resourcePath);
+			log.info("=== 当前操作系统: {}, 使用Chrome路径: {}", os, absolutePath);
 
-			URL resource = getClass().getResource(resourcePath);
-			if (resource == null) {
-				throw new RuntimeException("未找到内置Chrome: " + resourcePath);
+			if (!os.contains("windows")) {
+				chromeFile.setExecutable(true, false);
 			}
-
-			if (resource.getProtocol().equals("jar")) {
-				File chromeDir = new File(System.getProperty("java.io.tmpdir"), "embedded-chrome");
-				if (!chromeDir.exists()) {
-					chromeDir.mkdirs();
-				}
-
-				String chromeName = new File(resourcePath).getName();
-				File chromeFile = new File(chromeDir, chromeName);
-				if (!chromeFile.exists()) {
-					try (InputStream in = getClass().getResourceAsStream(resourcePath)) {
-						if (in == null) {
-							throw new RuntimeException("无法读取内置Chrome");
-						}
-						Files.copy(in, chromeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					}
-
-					if (!os.contains("windows")) {
-						chromeFile.setExecutable(true, false);
-					}
-				}
-				return chromeFile.getAbsolutePath();
-			} else {
-				File chromeFile = new File(resource.toURI());
-				if (!os.contains("windows")) {
-					chromeFile.setExecutable(true, false);
-				}
-				return chromeFile.getAbsolutePath();
-			}
+			return absolutePath;
 		} catch (Exception e) {
-			log.error("获取Chrome路径失败: {}", e.getMessage());
+			log.error("=== 获取Chrome路径失败: {}", e.getMessage());
 			throw new RuntimeException("获取Chrome路径失败", e);
 		}
 	}
@@ -225,7 +202,7 @@ public class RobotChecker {
 					org.openqa.selenium.Cookie abtCookie = driver.manage().getCookieNamed("abt_data");
 					if (abtCookie != null) {
 						cookieMap.put("abt_data", abtCookie.getValue());
-						log.info("第{}次尝试通过getCookieNamed获取到abt_data: {}", i + 1, abtCookie.getValue());
+						log.info("=== 第{}次尝试通过getCookieNamed获取到abt_data: {}", i + 1, abtCookie.getValue());
 						break;
 					}
 				}
@@ -243,7 +220,7 @@ public class RobotChecker {
 			try {
 				driver.quit();
 			} catch (Exception e) {
-				log.error("关闭WebDriver失败", e);
+				log.error("=== 关闭WebDriver失败", e);
 			}
 		}
 	}
