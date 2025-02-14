@@ -4,13 +4,14 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.pkz.bla.mershcrawler.config.ProxyConfig;
 import com.pkz.bla.mershcrawler.dto.ip.ProxyIp;
+import com.pkz.bla.mershcrawler.exception.MershCrawlerException;
+import com.pkz.bla.mershcrawler.robot.RobotChecker;
 import com.pkz.bla.mershcrawler.util.CookieUtil;
 import com.pkz.bla.mershcrawler.util.HeaderUtil;
 import com.pkz.bla.mershcrawler.util.JsoupUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
-import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -19,8 +20,6 @@ import java.net.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.pkz.bla.mershcrawler.util.CookieUtil.COOKIE_POOL;
 
 /**
  * @author chentong
@@ -117,6 +116,8 @@ public class CrawlerInstance {
 
 		private Connection.Response jsoupResponse;
 
+		private byte[] byteBody;
+
 		private int httpStatus;
 
 		private String jsonBody;
@@ -133,6 +134,10 @@ public class CrawlerInstance {
 			return this.documentBody;
 		}
 
+		public String stringBody() {
+			return this.jsoupResponse.body();
+		}
+
 	}
 
 	public CrawlerInstance build() {
@@ -145,6 +150,7 @@ public class CrawlerInstance {
 					.method(Connection.Method.GET)
 					.timeout(this.request.timeout)
 					.ignoreContentType(true)
+					.ignoreHttpErrors(true)
 					.followRedirects(this.request.followRedirects)
 					.maxBodySize(0);
 
@@ -171,53 +177,54 @@ public class CrawlerInstance {
 					}
 				});
 				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(request.getProxy().getIp(), request.getProxy().getPort()));
-				log.info("使用代理: {}:{}", request.getProxy().getIp(), request.getProxy().getPort());
+				log.info("=== 使用代理: {}:{}", request.getProxy().getIp(), request.getProxy().getPort());
 				connection.proxy(proxy);
 			}
 		} catch (Exception e) {
-			log.error("URL处理失败: {}", e.getMessage());
-			throw new RuntimeException("URL处理失败", e);
+			log.error("==== URL处理失败: {}", e.getMessage());
+			throw new MershCrawlerException(CharSequenceUtil.format("URL处理失败:{}", e.getMessage()));
 		}
 		return this;
 	}
 
 	public CrawlerResponse execute() {
-
 		if (Objects.isNull(connection)) {
 			this.build();
 		}
 		try {
 			Connection.Response execute = connection.execute();
+			this.response.byteBody = execute.bodyAsBytes();
 			this.response.jsoupResponse = execute;
 			this.response.httpStatus = execute.statusCode();
 
-//			if (!getRequest().followRedirects) {
-//				if (execute.statusCode() == 307) {
-//					String redirectUrl = execute.header("Location");
-//					System.out.println("Redirect URL: " + redirectUrl);
-//					// 手动处理重定向
-//					this.request.followRedirects = true;
-//					url(redirectUrl);
-//					CrawlerResponse resp = execute();
-//					System.out.println("Final URL: " + resp.getJsoupResponse().url());
-//					System.out.println("Status Code: " + resp.getJsoupResponse().statusCode());
-//				}
-//			}
+			if (response.httpStatus == 403) {
+				log.warn("=== Cookies失效触发检测机制，使用RobotChecker ===");
+				RobotChecker checker = new RobotChecker();
+				try {
+					Map<String, String> newCookies = checker.handleRobotCheck(this.request.getUrl());
+					if (newCookies != null && !newCookies.isEmpty()) {
+						log.info("=== 获取到新的Cookies，数量: {}", newCookies.size());
+						// 移除旧Cookie获取
+						CookieUtil.remove(this.getRequest().getCookies());
+						CookieUtil.putCookies(newCookies);
+						// 更新请求的Cookies
+						this.request.setCookies(newCookies);
+						// 清除旧的连接和响应
+						this.connection = null;
+						this.response = new CrawlerResponse();
+						// 重新执行请求
+						return execute();
+					} else {
+						log.error("==== 未获取到新的Cookies");
+					}
+				} finally {
+					checker.close();
+				}
+			}
 
 			updateResponseCookies(execute);
-		} catch (HttpStatusException e) {
-			log.error("HttpStatusException： {}", e.getStatusCode());
-			if (e.getStatusCode() == 403) {
-				CookieUtil.remove(request.cookies);
-				log.warn("==== Cookie已失效，从Cookie池中移除，剩余Cookie数 {} ====", COOKIE_POOL.size());
-				log.info("=== 使用随机Cookie重新请求 ===");
-				this.request.cookies = null;
-				connection = null;
-				execute();
-			}
-			throw new RuntimeException(e);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new MershCrawlerException(CharSequenceUtil.format("IO异常:{}", e.getMessage()));
 		}
 		return this.response;
 	}

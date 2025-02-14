@@ -23,6 +23,7 @@ public class OzonController {
 
 	@GetMapping("/product")
 	public DetectionPlanResult getProductInfo(@RequestParam Long sku) {
+
 		return crawlerService.getProductInfo(sku);
 	}
 }

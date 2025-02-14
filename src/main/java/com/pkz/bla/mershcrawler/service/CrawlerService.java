@@ -34,7 +34,6 @@ public class CrawlerService {
 		String merchandiseUrl = CharSequenceUtil.format(PRODUCT_BASE_URL, sku);
 
 		ProxyIp proxyIp = proxyIpService.getRandomProxy1();
-//            ProxyIp proxyIp = proxyIpService.getRandomProxy();
 		if (proxyIp == null) {
 			log.warn("未获取到可用代理，尝试直连...");
 		}

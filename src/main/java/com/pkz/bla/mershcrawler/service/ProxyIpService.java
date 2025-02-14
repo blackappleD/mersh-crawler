@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.pkz.bla.mershcrawler.config.ProxyConfig;
 import com.pkz.bla.mershcrawler.dto.ip.ProxyIp;
+import com.pkz.bla.mershcrawler.exception.MershCrawlerException;
 import com.pkz.bla.mershcrawler.util.JsonUtil;
 import jakarta.annotation.Resource;
 import lombok.Data;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author chentong
@@ -53,8 +55,13 @@ public class ProxyIpService {
 		String url = CharSequenceUtil.format("https://share.proxy.qg.net/get?key={}&num=1&area=&isp=0&format=json&distinct=true", proxyConfig.getAuthKey());
 		String response = HttpUtil.get(url);
 		ProxyResponse proxyResponse = JsonUtil.fromJson(response, ProxyResponse.class);
-		ProxyData proxyData = RandomUtil.randomEle(proxyResponse.getData());
-		log.info("获取带代理ip:{}", proxyData);
+		List<ProxyData> proxyDataList = proxyResponse.getData();
+		if (Objects.isNull(proxyDataList) || proxyDataList.isEmpty()) {
+
+			throw new MershCrawlerException("代理获取失败");
+		}
+		ProxyData proxyData = RandomUtil.randomEle(proxyDataList);
+		log.info("=== 获取带代理ip:{}", proxyData);
 		String[] split = proxyData.getServer().split(":");
 		ProxyIp proxyIp = new ProxyIp();
 		proxyIp.setIp(split[0].trim());

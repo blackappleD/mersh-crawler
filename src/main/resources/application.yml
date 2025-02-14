@@ -6,5 +6,5 @@ spring:
 proxy:
   enable: true
   auth-key: 6179CB51
-  auth_password: C39AF99FF29E
+  auth-password: C39AF99FF29E
 
