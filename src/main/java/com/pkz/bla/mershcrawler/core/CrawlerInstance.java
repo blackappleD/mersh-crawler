@@ -159,7 +159,7 @@ public class CrawlerInstance {
 				this.request.cookies = CookieUtil.getRandomCookies();
 				if (Objects.isNull(this.request.cookies)) {
 					log.error("=== Cookie池中存在0个可用Cookie，请及时更新Cookie ===");
-					throw new RuntimeException("Cookie池中Cookie已耗尽，无法执行");
+					throw new MershCrawlerException("Cookie池中Cookie已耗尽，无法执行，请在resources/init/ozon_cookie.txt中添加Cookie");
 				}
 			}
 			connection.cookies(this.request.cookies);

@@ -1,5 +1,6 @@
 package com.pkz.bla.mershcrawler.robot;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.pkz.bla.mershcrawler.exception.MershCrawlerException;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +83,7 @@ public class RobotChecker {
 
 		} catch (Exception e) {
 			log.error("=== 初始化WebDriver失败: {}", e.getMessage(), e);
-			throw new RuntimeException("初始化WebDriver失败", e);
+			throw new MershCrawlerException("初始化WebDriver失败: " + e.getMessage());
 		}
 	}
 
@@ -100,7 +101,7 @@ public class RobotChecker {
 				resourcePath = "/chrome/linux/driver/chromedriver";
 				driverFileName = "chromedriver";
 			} else {
-				throw new RuntimeException("不支持的操作系统: " + os);
+				throw new MershCrawlerException("不支持的操作系统: " + os);
 			}
 
 			String tempDirName = "selenium-drivers-" + System.currentTimeMillis();
@@ -113,7 +114,7 @@ public class RobotChecker {
 
 			try (InputStream in = getClass().getResourceAsStream(resourcePath)) {
 				if (in == null) {
-					throw new RuntimeException("未找到ChromeDriver资源文件: " + resourcePath);
+					throw new MershCrawlerException("未找到ChromeDriver资源文件: " + resourcePath);
 				}
 
 				try (FileOutputStream out = new FileOutputStream(driverFile)) {
@@ -137,7 +138,7 @@ public class RobotChecker {
 
 		} catch (Exception e) {
 			log.error("=== 提取ChromeDriver失败: {}", e.getMessage());
-			throw new RuntimeException("提取ChromeDriver失败", e);
+			throw new MershCrawlerException(CharSequenceUtil.format("提取ChromeDriver失败：{}", e.getMessage()));
 		}
 	}
 
@@ -150,14 +151,14 @@ public class RobotChecker {
 				String resourcePath = "/chrome/windows/explore/chrome.exe";
 				URL resource = getClass().getResource(resourcePath);
 				if (resource == null) {
-					throw new MershCrawlerException("=== 未找到Chrome.exe文件");
+					throw new MershCrawlerException("未找到Chrome.exe文件");
 				}
 				chromeFile = new File(resource.toURI());
 			} else if (os.contains("linux")) {
 				String resourcePath = "/usr/bin/google-chrome";
 				chromeFile = new File(resourcePath);
 			} else {
-				throw new RuntimeException("不支持的操作系统: " + os);
+				throw new MershCrawlerException(CharSequenceUtil.format("不支持的操作系统: {}", os));
 			}
 			String absolutePath = chromeFile.getAbsolutePath();
 
@@ -169,7 +170,7 @@ public class RobotChecker {
 			return absolutePath;
 		} catch (Exception e) {
 			log.error("=== 获取Chrome路径失败: {}", e.getMessage());
-			throw new RuntimeException("获取Chrome路径失败", e);
+			throw new MershCrawlerException("获取Chrome浏览器路径失败");
 		}
 	}
 
