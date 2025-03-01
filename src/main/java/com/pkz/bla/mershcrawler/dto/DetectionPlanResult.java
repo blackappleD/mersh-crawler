@@ -34,6 +34,7 @@ public class DetectionPlanResult {
 	@Data
 	public static class FollowSellProductInfo {
 
+		private String sku;
 		// 图片url
 		private String imageUrl;
 
@@ -41,7 +42,7 @@ public class DetectionPlanResult {
 		private String productName;
 
 		// 售卖价格
-		private String salePrice;
+		private BigDecimal salePrice;
 
 		// 店铺名称
 		private String storeName;
