@@ -1,4 +1,4 @@
-package com.pkz.bla.mershcrawler.core;
+package com.pkz.bla.mershcrawler.core.analyzer;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.jayway.jsonpath.JsonPath;
@@ -7,6 +7,7 @@ import com.pkz.bla.mershcrawler.dto.data.Product;
 import com.pkz.bla.mershcrawler.dto.data.Seller;
 import com.pkz.bla.mershcrawler.dto.data.Sellers;
 import com.pkz.bla.mershcrawler.util.JsonUtil;
+import com.pkz.bla.mershcrawler.util.Uris;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.pkz.bla.mershcrawler.util.Uris.SELLER_BASE_URL;
 
 /**
  * @author chentong
@@ -100,7 +100,7 @@ public class OzonAnalyzer {
 					.map(seller -> {
 						DetectionPlanResult.FollowSellProductInfo info = new DetectionPlanResult.FollowSellProductInfo();
 						info.setStoreName(seller.getName());
-						info.setStoreUrl(CharSequenceUtil.format(SELLER_BASE_URL, seller.getLink()));
+						info.setStoreUrl(CharSequenceUtil.format(Uris.Ozon.SELLER_BASE_URL, seller.getLink()));
 						info.setImageUrl(seller.getLogoImageUrl());
 						info.setProductName(product.getTitle());
 						info.setSalePrice(seller.getPrice().getPrice());

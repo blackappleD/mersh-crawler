@@ -1,5 +1,6 @@
 package com.pkz.bla.mershcrawler.util;
 
+import com.pkz.bla.mershcrawler.enums.Domain;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -32,25 +33,48 @@ public class InitRunner implements ApplicationRunner {
 	public void run(ApplicationArguments args) {
 		initCookie();
 		initMonthLang();
+		initAccountPool();
 //		initSslSocketFactory();
 	}
 
+	private void initAccountPool() {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resourceLoader.getResource("classpath:init/tkshop_account.txt").getInputStream()))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (!line.trim().isEmpty()) {
+					String[] split = line.split(";");
+					if (split.length == 2) {
+						AccountUtil.Account account = new AccountUtil.Account(split[0], split[1]);
+						AccountUtil.putAccount(Domain.TK_SHOP, account);
+					}
+				}
+			}
+			log.info("=== {} Account加载完成，当前数量：{} ===", Domain.TK_SHOP, AccountUtil.accountQuantity(Domain.TK_SHOP));
+		} catch (IOException e) {
+			log.error("加载Account配置文件失败: {}", e.getMessage());
+		}
+	}
+
 	private void initCookie() {
+		initOzonCookie();
+	}
+
+	private void initOzonCookie() {
+
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resourceLoader.getResource("classpath:init/ozon_cookie.txt").getInputStream()))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				if (!line.trim().isEmpty()) {
-					CookieUtil.COOKIE_STR_POOL.add(line);
 					HashMap<String, String> cookie = new HashMap<>();
 					String[] cookieParams = line.split(";");
 					for (String cookieParam : cookieParams) {
 						String[] split = cookieParam.split("=");
 						cookie.put(split[0].trim(), split[1].trim());
 					}
-					CookieUtil.COOKIE_POOL.add(cookie);
+					CookieUtil.putCookies(Domain.OZON, cookie);
 				}
 			}
-			log.info("=== Cookie加载完成，当前数量：{} ===", CookieUtil.COOKIE_POOL.size());
+			log.info("=== {} Cookie加载完成，当前数量：{} ===", Domain.OZON, CookieUtil.cookieQuantity(Domain.OZON));
 		} catch (IOException e) {
 			log.error("加载Cookie配置文件失败: {}", e.getMessage());
 		}

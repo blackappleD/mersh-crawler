@@ -52,7 +52,7 @@ public class ProxyIpService {
 	}
 
 	public ProxyIp getRandomProxy1() {
-		String url = CharSequenceUtil.format("https://share.proxy.qg.net/get?key={}&num=1&area=&isp=0&format=json&distinct=true", proxyConfig.getAuthKey());
+		String url = CharSequenceUtil.format("https://share.proxy.qg.net/get?key={}&pwd={}&num=1&area=&isp=0&format=json&distinct=true", proxyConfig.getAuthKey(), proxyConfig.getAuthPassword());
 		String response = HttpUtil.get(url);
 		ProxyResponse proxyResponse = JsonUtil.fromJson(response, ProxyResponse.class);
 		List<ProxyData> proxyDataList = proxyResponse.getData();

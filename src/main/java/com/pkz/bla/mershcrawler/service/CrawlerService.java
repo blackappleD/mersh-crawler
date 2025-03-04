@@ -2,20 +2,18 @@ package com.pkz.bla.mershcrawler.service;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.pkz.bla.mershcrawler.core.CrawlerInstance;
-import com.pkz.bla.mershcrawler.core.OzonAnalyzer;
+import com.pkz.bla.mershcrawler.core.analyzer.OzonAnalyzer;
 import com.pkz.bla.mershcrawler.dto.DetectionPlanResult;
 import com.pkz.bla.mershcrawler.dto.ip.ProxyIp;
-import com.pkz.bla.mershcrawler.util.CookieUtil;
+import com.pkz.bla.mershcrawler.enums.Domain;
 import com.pkz.bla.mershcrawler.util.HeaderUtil;
+import com.pkz.bla.mershcrawler.util.Uris;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-
-import static com.pkz.bla.mershcrawler.util.Uris.FOLLOW_SELLER_PAGE_BASE_URL;
-import static com.pkz.bla.mershcrawler.util.Uris.PRODUCT_BASE_URL;
 
 /**
  * @author chentong
@@ -31,7 +29,7 @@ public class CrawlerService {
 	private ProxyIpService proxyIpService;
 
 	public DetectionPlanResult getProductInfo(Long sku) {
-		String merchandiseUrl = CharSequenceUtil.format(PRODUCT_BASE_URL, sku);
+		String merchandiseUrl = CharSequenceUtil.format(Uris.Ozon.PRODUCT_BASE_URL, sku);
 
 		ProxyIp proxyIp = proxyIpService.getRandomProxy1();
 		if (proxyIp == null) {
@@ -39,8 +37,7 @@ public class CrawlerService {
 		}
 
 		try {
-			Document doc = CrawlerInstance.create(sku)
-					.url(merchandiseUrl)
+			Document doc = CrawlerInstance.create(Domain.OZON, merchandiseUrl)
 					.proxy(proxyIp)
 					.updateCookies(true)
 					.execute()
@@ -54,14 +51,13 @@ public class CrawlerService {
 
 			String sellerPath = ozonAnalyzer.getSellerPath();
 
-			String followSellerPageUrl = CharSequenceUtil.format(FOLLOW_SELLER_PAGE_BASE_URL, sellerPath);
+			String followSellerPageUrl = CharSequenceUtil.format(Uris.Ozon.FOLLOW_SELLER_PAGE_BASE_URL, sellerPath);
 			log.info("解析到SellersUrl: {}", followSellerPageUrl);
 
-			String sellersJson = CrawlerInstance.create(sku)
-					.url(followSellerPageUrl)
+			String sellersJson = CrawlerInstance.create(Domain.OZON, followSellerPageUrl)
 					.headers(HeaderUtil.sellerHeaders())
 					.proxy(proxyIp)
-					.cookies(CookieUtil.getRandomCookies())
+					.randomCookies()
 					.updateCookies(false)
 					.execute()
 					.jsonBody();
@@ -76,8 +72,6 @@ public class CrawlerService {
 
 
 	private void debugApiResponse(String filename, String content) {
-
-
 		try {
 			// 将内容保存到文件以便分析
 			java.nio.file.Files.writeString(

@@ -4,6 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.pkz.bla.mershcrawler.config.ProxyConfig;
 import com.pkz.bla.mershcrawler.dto.ip.ProxyIp;
+import com.pkz.bla.mershcrawler.enums.Domain;
 import com.pkz.bla.mershcrawler.exception.MershCrawlerException;
 import com.pkz.bla.mershcrawler.robot.RobotChecker;
 import com.pkz.bla.mershcrawler.util.CookieUtil;
@@ -31,22 +32,19 @@ import java.util.Objects;
 @Data
 public class CrawlerInstance {
 
-	private Long sku;
+	private Domain domain;
 	private CrawlerRequest request;
 	private CrawlerResponse response;
 	private Connection connection = null;
 	private boolean updateCookies = false;
 
-	public static CrawlerInstance create(Long sku) {
-		CrawlerInstance crawlerInstance = new CrawlerInstance(sku);
-		crawlerInstance.setRequest(new CrawlerRequest());
+	public static CrawlerInstance create(Domain domain, String url) {
+		CrawlerInstance crawlerInstance = new CrawlerInstance(domain);
+		CrawlerRequest req = new CrawlerRequest();
+		req.setUrl(url);
+		crawlerInstance.setRequest(req);
 		crawlerInstance.setResponse(new CrawlerResponse());
 		return crawlerInstance;
-	}
-
-	public CrawlerInstance url(String url) {
-		this.request.setUrl(url);
-		return this;
 	}
 
 	public CrawlerInstance updateCookies(boolean updateCookies) {
@@ -57,6 +55,10 @@ public class CrawlerInstance {
 	public CrawlerInstance cookies(Map<String, String> cookies) {
 		this.request.setCookies(cookies);
 		return this;
+	}
+
+	public CrawlerInstance randomCookies() {
+		return cookies(CookieUtil.getRandomCookies(domain));
 	}
 
 	public CrawlerInstance headers(Map<String, String> headers) {
@@ -80,8 +82,8 @@ public class CrawlerInstance {
 	}
 
 
-	private CrawlerInstance(Long sku) {
-		this.sku = sku;
+	private CrawlerInstance(Domain domain) {
+		this.domain = domain;
 	}
 
 
@@ -156,7 +158,7 @@ public class CrawlerInstance {
 
 
 			if (Objects.isNull(this.request.cookies)) {
-				this.request.cookies = CookieUtil.getRandomCookies();
+				this.request.cookies = CookieUtil.getRandomCookies(domain);
 				if (Objects.isNull(this.request.cookies)) {
 					log.error("=== Cookie池中存在0个可用Cookie，请及时更新Cookie ===");
 					throw new MershCrawlerException("Cookie池中Cookie已耗尽，无法执行，请在resources/init/ozon_cookie.txt中添加Cookie");
@@ -205,8 +207,8 @@ public class CrawlerInstance {
 					if (newCookies != null && !newCookies.isEmpty()) {
 						log.info("=== 获取到新的Cookies，数量: {}", newCookies.size());
 						// 移除旧Cookie获取
-						CookieUtil.remove(this.getRequest().getCookies());
-						CookieUtil.putCookies(newCookies);
+						CookieUtil.remove(domain, this.getRequest().getCookies());
+						CookieUtil.putCookies(domain, newCookies);
 						// 更新请求的Cookies
 						this.request.setCookies(newCookies);
 						// 清除旧的连接和响应

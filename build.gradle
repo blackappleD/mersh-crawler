@@ -32,7 +32,7 @@ dependencies {
 //    runtimeOnly 'com.mysql:mysql-connector-j'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // https://mvnrepository.com/artifact/cn.hutool/hutool-all
     implementation 'cn.hutool:hutool-all:5.8.33'
@@ -54,6 +54,12 @@ dependencies {
     
     // webdriver管理器
     implementation 'io.github.bonigarcia:webdrivermanager:5.7.0'
+
+    // Playwright for Java
+    implementation 'com.microsoft.playwright:playwright:1.36.0'
+
+    // OpenCV for Java
+    implementation 'org.openpnp:opencv:4.7.0-0'
 }
 
 jib {
