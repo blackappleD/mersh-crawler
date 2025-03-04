@@ -96,6 +96,7 @@ public class OzonAnalyzer {
 
 		if (sellerListData != null) {
 			Sellers sellers = JsonUtil.fromJson(sellerListData, Sellers.class);
+
 			List<DetectionPlanResult.FollowSellProductInfo> list = sellers.getSellers().stream()
 					.map(seller -> {
 						DetectionPlanResult.FollowSellProductInfo info = new DetectionPlanResult.FollowSellProductInfo();
@@ -103,7 +104,13 @@ public class OzonAnalyzer {
 						info.setStoreUrl(CharSequenceUtil.format(Uris.Ozon.SELLER_BASE_URL, seller.getLink()));
 						info.setImageUrl(seller.getLogoImageUrl());
 						info.setProductName(product.getTitle());
-						info.setSalePrice(seller.getPrice().getPrice());
+						String priceJson = JsonUtil.toJson(seller.getPrice());
+						if (priceJson.contains("cardPrice")) {
+							info.setSalePrice(new BigDecimal(JsonUtil.fromJson(priceJson, Seller.Price2.class).getCardPrice().getPrice().replaceAll("[^0-9]", "")));
+						} else {
+							info.setSalePrice(new BigDecimal(JsonUtil.fromJson(priceJson, Seller.Price1.class).getPrice().replaceAll("[^0-9]", "")));
+						}
+						info.setSku(seller.getSku());
 						Optional<Seller.Advantage> delivery = seller.getAdvantages().stream()
 								.filter(tag -> tag.getKey().equals("delivery")).findFirst();
 						if (delivery.isPresent()) {

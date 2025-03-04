@@ -179,7 +179,7 @@ public class RobotChecker {
 			log.info("=== 开始处理机器人检测，URL: {}", url);
 
 			driver.get(url);
-			long delay = 6000 + RandomUtil.randomInt(5) * 1000L;
+			long delay = 3000 + RandomUtil.randomInt(5) * 1000L;
 			log.info("=== 已加载页面，并随机等待 {} ms", delay);
 			Thread.sleep(delay);
 

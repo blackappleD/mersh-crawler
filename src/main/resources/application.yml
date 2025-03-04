@@ -5,6 +5,6 @@ spring:
     name: mersh-crawler
 proxy:
   enable: true
-  auth-key: "D87313ED"
-  auth-password: "42540375E2DD"
+  auth-key: "A2537F17"
+  auth-password: "D1C17EBCFFDA"
 

@@ -28,7 +28,7 @@ public class Seller {
 
 	private String subtitle;
 
-	private Price price;
+	private Object price;
 
 	private String coverImage;
 
@@ -56,9 +56,24 @@ public class Seller {
 	}
 
 	@Data
-	public static class Price {
+	public static class Price1 {
 		private String originalPrice;
 
 		private String price;
+	}
+
+	@Data
+	public static class Price2 {
+		private CardPrice cardPrice;
+
+		@Data
+		public static class CardPrice {
+
+			private String price;
+
+			private String text;
+
+		}
+
 	}
 }
